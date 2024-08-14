@@ -1,0 +1,43 @@
+
+### man_1_simple_shell
+
+```markdown
+.TH SIMPLE_SHELL 1 "August 2024" "Simple Shell Manual" "Version 1.0"
+.SH NAME
+simple_shell \- a simple UNIX command interpreter
+.SH SYNOPSIS
+.B simple_shell
+.SH DESCRIPTION
+.B simple_shell
+is a simple command-line interpreter that reads user commands and executes them.
+
+.SH OPTIONS
+This shell does not support any command-line options.
+
+.SH BUILT-IN COMMANDS
+.TP
+.B exit [STATUS]
+Exits the shell. If a numeric status is provided, the shell exits with that status.
+
+.TP
+.B env
+Prints the current environment.
+
+.SH EXAMPLES
+To run the shell:
+.PP
+$ ./hsh
+.PP
+To list files in the current directory:
+.PP
+$ ls -l
+.PP
+To exit the shell:
+.PP
+$ exit
+
+.SH AUTHORS
+See the AUTHORS file for the list of contributors.
+
+.SH SEE ALSO
+.B bash (1)
