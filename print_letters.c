@@ -39,23 +39,32 @@ void print_E()
 			}
 		}
 
-		if(i == 1) //ROWS
-		{
-			for (j = 0; j < 0; j++) //COLUMNS
+		if (i == 2) { // ROWS
+            for (int j = 0; j < 2; j++) // COLUMNS
 			{
-				printf(" *");
-			}
-		}
+                if (j == 0 || j == 2)  // Skip printing when j == 1
+				{
+                    printf(" *");
+                }
+				else
+				{
+					printf(" ");
+				}
+            }
 
-		if(i == 2) //ROWS
-		{
-			for (j = 0 && j != 1; j < 2; j++) //COLUMNS
+		if (i == 3) { // ROWS
+            for (int j = 0; j < 2; j++) // COLUMNS
 			{
-				printf(" *");
-				
-			}
-			
-		}
+                if (j == 0 || j == 2)  // Skip printing when j == 1
+				{
+                    printf(" *");
+                }
+				else
+				{
+					printf(" ");
+				}
+            }
+        }
 		printf(" *");
 		printf("\n");
 	}
