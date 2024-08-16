@@ -1,21 +1,26 @@
-#include "main.h"
-
-/**
-* more_numbers - prints numbers from 0 to 14 ten times.
-*/
-void more_numbers(void)
+#include <stdio.h>
+void print_E()
 {
 	int i, j;
-	for (i = 0; i < 10; i++)
+
+	for (i = 0; i < 7; i++)
 	{
-		for (j = 0; j <= 14; j++)
+		if(i == 0 || i == 3 || i == 6)
 		{
-			if (j > 9)
+			for (j = 0; j < 6; j++)
 			{
-				_putchar ('0' + j / 10);
+				printf(" *");
 			}
-			_putchar ('0' + j % 10);
 		}
-		_putchar('\n');
+		printf(" *");
+		printf("\n");
 	}
+	
+
+}
+
+int main()
+{
+	print_E();
+	return(0);
 }
