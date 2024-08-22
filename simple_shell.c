@@ -1,65 +1,113 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include "main.h"
 
-extern char **environ;  // Add this line to declare environ
+/**
+ * command_read - Reads a command from stdin
+ * @s: The command to read
+ * Return: 0 on success, 1 on failure
+ */
 
-#define BUFFER_SIZE 1024
+int command_read(char *s)
+{
+	int i;
+	char *token = NULL;
+	char *cmd_array[100];
+
+	if (strcmp(s, "exit") == 0)
+		return (2);
+	if (strcmp(s, "env") == 0)
+		return (_printenv());
+	token = strtok(s, " ");
+	i = 0;
+	while (token != NULL && i < 100)
+	{
+		cmd_array[i] = token;
+		token = strtok(NULL, " ");
+		i++;
+	}
+	cmd_array[i] = NULL;
+	return (execute(cmd_array));
+}
+
+/**
+ * execute - Executes a command
+ * @cmd_arr: The command to execute
+ * Return: 0 on success, 1 on failure
+ */
+
+int execute(char *cmd_arr[])
+{
+	pid_t pid;
+	char *exe_path;
+	int status;
+
+	exe_path = command_path(cmd_arr[0]);
+	if (exe_path == NULL)
+	{
+		fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
+		return (1);
+	}
+	pid = fork();
+	if (pid < 0)
+	{
+		perror("Error at creating a child process\n");
+		exit (1);
+	}
+	if (pid > 0)
+	{
+		do
+		{
+			waitpid(pid, &status, WUNTRACED);
+		}
+		while (!WIFEXITED(status) && !WIFSIGNALED(status));
+		if (WEXITSTATUS(status) != 0)
+		{
+			exit(2);
+		}
+	}
+	else if (pid == 0)
+	{
+		if (execvp(exe_path, cmd_arr) == -1)
+		{
+			fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
+			exit(127);
+		}
+	}
+	free(exe_path);
+	return (0);
+}
+
+/**
+ * main - Entry point
+ * @argc: The number of arguments
+ * @argv: The arguments
+ * Return: 0 on success, 1 on failure
+ */
 
 int main(void)
 {
-	char buffer[BUFFER_SIZE];
-	char *args[2];
-	pid_t pid;
-	int status;
+	char *line = NULL;
+	size_t buf_size = 0;
+	ssize_t characters = 0;
 
 	while (1)
 	{
-		printf("#cisfun$ ");
-		
-		if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
+		if (isatty(STDIN_FILENO) == 1)
+			write(1, "$ ", 2);
+		characters = getline(&line, &buf_size, stdin);
+		if (characters == -1)
 		{
-			if (feof(stdin)) {
-				printf("\n");
-				break;
-			}
-			perror("fgets");
+			if (isatty(STDIN_FILENO) == 1)
+				write(1, "\n", 1);
+			break;
+		}
+		if (line[characters - 1] == '\n')
+			line[characters - 1] = '\0';
+		trim_whitespace(line);
+		if (*line == '\0')
 			continue;
-		}
-
-		buffer[strcspn(buffer, "\n")] = '\0';
-
-		if (buffer[0] == '\0')
-			continue;
-
-		args[0] = buffer;
-		args[1] = NULL;
-
-		pid = fork();
-		if (pid == -1)
-		{
-			perror("fork");
-			exit(EXIT_FAILURE);
-		}
-		else if (pid == 0)
-		{
-			if (execve(args[0], args, environ) == -1)
-			{
-				perror("./shell");
-				exit(EXIT_FAILURE);
-			}
-		}
-		else
-		{
-			if (wait(&status) == -1)
-			{
-				perror("wait");
-			}
-		}
+		if (command_read(line) == 2)
+			break;
 	}
-
-	return 0;
+	free(line);
+	return (0);
 }
