@@ -38,13 +38,13 @@ char *command_path(char *cmd)
 		strcat(full_path, cmd);
 		if (stat(full_path, &buf) == 0)
 		{
-			free (path_copy);
+			free(path_copy);
 			return (full_path);
 		}
 		free (full_path);
 		token = strtok(NULL, ":");
 	}
-	free (path_copy);
+	free(path_copy);
 	if (stat(cmd, &buf) == 0)
 		return (strdup(cmd));
 	return (NULL);
