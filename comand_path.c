@@ -29,7 +29,7 @@ char *command_path(char *cmd)
 		full_path = malloc(strlen(token) + strlen(cmd) + 2);
 		if (full_path == NULL)
 		{
-		fprintf(stderr, "Error allocating full path");
+			fprintf(stderr, "Error allocating full path");
 			free (path_copy);
 			return (NULL);
 		}
@@ -41,7 +41,7 @@ char *command_path(char *cmd)
 			free (path_copy);
 			return (full_path);
 		}
-		free(full_path);
+		free (full_path);
 		token = strtok(NULL, ":");
 	}
 	free (path_copy);
