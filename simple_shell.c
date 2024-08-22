@@ -1,28 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define MAX_COMMAND_LEN 1024
+extern char **environ;  // Add this line to declare environ
+
+#define BUFFER_SIZE 1024
 
 int main(void)
 {
-	char command[MAX_COMMAND_LEN];
-	char *argv[2];
+	char buffer[BUFFER_SIZE];
+	char *args[2];
 	pid_t pid;
 	int status;
 
 	while (1)
 	{
 		printf("#cisfun$ ");
-		fflush(stdout);
-
-		if (fgets(command, MAX_COMMAND_LEN, stdin) == NULL)
+		
+		if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
 		{
-			if (feof(stdin))
-			{
+			if (feof(stdin)) {
 				printf("\n");
 				break;
 			}
@@ -30,24 +30,23 @@ int main(void)
 			continue;
 		}
 
-		command[strcspn(command, "\n")] = 0;
+		buffer[strcspn(buffer, "\n")] = '\0';
 
-		if (command[0] == '\0')
+		if (buffer[0] == '\0')
 			continue;
 
-		argv[0] = command;
-		argv[1] = NULL;
+		args[0] = buffer;
+		args[1] = NULL;
 
 		pid = fork();
 		if (pid == -1)
 		{
 			perror("fork");
-			continue;
+			exit(EXIT_FAILURE);
 		}
-
-		if (pid == 0)
+		else if (pid == 0)
 		{
-			if (execve(argv[0], argv, environ) == -1)
+			if (execve(args[0], args, environ) == -1)
 			{
 				perror("./shell");
 				exit(EXIT_FAILURE);
@@ -55,7 +54,10 @@ int main(void)
 		}
 		else
 		{
-			wait(&status);
+			if (wait(&status) == -1)
+			{
+				perror("wait");
+			}
 		}
 	}
 
