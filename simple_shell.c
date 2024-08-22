@@ -2,39 +2,59 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
-#define BUFFER_SIZE 1024
+#define MAX_COMMAND_LEN 1024
 
-void display_prompt() {
-printf("#cisfun$ ");
-}
-	int main() {
-	char buffer[BUFFER_SIZE];
-	char *command;
+int main(void)
+{
+	char command[MAX_COMMAND_LEN];
+	char *argv[2];
 	pid_t pid;
 	int status;
 
-	while (1) {
-		display_prompt();
+	while (1)
+	{
+		printf("#cisfun$ ");
+		fflush(stdout);
 
-		if (fgets(buffer, BUFFER_SIZE, stdin) == NULL) {
-			printf("\n");
-			break;
+		if (fgets(command, MAX_COMMAND_LEN, stdin) == NULL)
+		{
+			if (feof(stdin))
+			{
+				printf("\n");
+				break;
+			}
+			perror("fgets");
+			continue;
 		}
 
-		buffer[strcspn(buffer, "\n")] = '\0';
+		command[strcspn(command, "\n")] = 0;
+
+		if (command[0] == '\0')
+			continue;
+
+		argv[0] = command;
+		argv[1] = NULL;
 
 		pid = fork();
-		if (pid < 0) {
-			perror("Fork failed");
-			exit(EXIT_FAILURE);
-		} else if (pid == 0) {
-			command = buffer;
-			if (execl(command, command, (char *)NULL) == -1) {
+		if (pid == -1)
+		{
+			perror("fork");
+			continue;
+		}
+
+		if (pid == 0)
+		{
+			if (execve(argv[0], argv, environ) == -1)
+			{
 				perror("./shell");
+				exit(EXIT_FAILURE);
 			}
-			exit(EXIT_FAILURE);
-		} else {
+		}
+		else
+		{
 			wait(&status);
 		}
 	}
