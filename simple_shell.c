@@ -50,7 +50,7 @@ int execute(char *cmd_arr[])
 	if (pid < 0)
 	{
 		perror("Error at creating a child process\n");
-		exit (1);
+		exit(1);
 	}
 	if (pid > 0)
 	{
