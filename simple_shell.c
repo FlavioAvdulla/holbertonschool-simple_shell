@@ -1,14 +1,14 @@
 #include "main.h"
 
 /**
- * command_read - Reads and processes a command from stdin.
- * @s: The command string to be processed.
- * This function checks if the command is either "exit" or "env".
- * If the command is "exit", the function returns 2 to indicate an exit signal.
- * If the command is "env", the function calls `_printenv` to print the environment variables.
- * Otherwise, it tokenizes the command string and executes the command using `execute`.
- * Return: 0 on successful execution, 1 on failure, 2 if the command is "exit".
- */
+* command_read - Reads and processes a command from stdin.
+* @s: The command string to be processed.
+* Checks if the command is "exit" or "env". If the command is "exit", returns
+* 2 to indicate an exit signal. If the command is "env", calls `_printenv` to
+* print environment variables. Otherwise, tokenizes the command string and
+* executes the command using `execute`.
+* Return: 0 on success, 1 on failure, 2 if the command is "exit".
+*/
 int command_read(char *s)
 {
 	int i;
@@ -32,14 +32,14 @@ int command_read(char *s)
 }
 
 /**
- * execute - Executes a command.
- * @cmd_arr: An array of command and its arguments.
- * This function first finds the full path of the command using `command_path`.
- * If the command is found, it forks a new process to execute the command.
- * The parent process waits for the child process to complete and checks the exit status.
- * The child process executes the command using `execvp`.
- * Return: 0 on success, 1 if the command is not found or failed to execute.
- */
+* execute - Executes a command.
+* @cmd_arr: An array of command and its arguments.
+* Finds the full path of the command using `command_path`. If the command is
+* found, forks a new process to execute the command. The parent process waits
+* for the child process to complete and checks the exit status. The child
+* process executes the command using `execvp`.
+* Return: 0 on success, 1 if the command is not found or failed to execute.
+*/
 int execute(char *cmd_arr[])
 {
 	pid_t pid;
@@ -84,12 +84,12 @@ int execute(char *cmd_arr[])
 }
 
 /**
- * main - Entry point of the shell program.
- * This function continuously prompts the user for input, reads the input command,
- * processes it using `command_read`, and handles the execution of the command.
- * The loop continues until the user inputs "exit" or an error occurs.
- * Return: Always returns 0.
- */
+* main - Entry point of the shell program.
+* Continuously prompts the user for input, reads the input command, processes
+* it using `command_read`, and handles the execution of the command. The loop
+* continues until the user inputs "exit" or an error occurs.
+* Return: Always returns 0.
+*/
 int main(void)
 {
 	char *line = NULL;
