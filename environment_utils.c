@@ -30,8 +30,8 @@ char *_getenv(char *var)
     len_var = strlen(var);
     for (i = 0; environ[i] != NULL; i++)
     {
-        if (strncmp(environ[i], var, len_var) == 0)
-            return (&environ[i][len_var]);
+        if (strncmp(environ[i], var, len_var) == 0 && environ[i][len_var] == '=')
+            return (&environ[i][len_var + 1]);
     }
     return (NULL);
 }
