@@ -63,6 +63,7 @@ int execute(char *cmd_arr[])
 		do {
 			waitpid(pid, &status, WUNTRACED);
 		}
+
 		while {
 		(!WIFEXITED(status) && !WIFSIGNALED(status));
 		}
