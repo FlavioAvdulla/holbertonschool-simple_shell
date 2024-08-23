@@ -57,6 +57,8 @@ int execute(char *cmd_arr[])
         return (127);
     }
 
+    printf("Executing command at path: %s\n", exe_path);
+
     pid = fork();
     if (pid < 0)
     {

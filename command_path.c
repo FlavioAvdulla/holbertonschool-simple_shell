@@ -1,10 +1,5 @@
 #include "main.h"
 
-/**
- * command_path - Finds the full path of a command
- * @cmd: The command to find
- * Return: The full path of the command, or NULL if not found
- */
 char *command_path(char *cmd)
 {
     char *path, *path_copy, *full_path, *token;
@@ -19,17 +14,25 @@ char *command_path(char *cmd)
     if (cmd[0] == '.' || cmd[0] == '/')
     {
         if (stat(cmd, &buf) == 0)
+        {
             return (strdup(cmd));
-        return (NULL);
+        }
+        else
+        {
+            fprintf(stderr, "Command '%s' not found\n", cmd);
+            return (NULL);
+        }
     }
 
     path = _getenv("PATH");
-    if (path == NULL)
+    if (path == NULL || strlen(path) == 0)
     {
-        fprintf(stderr, "PATH variable not found\n");
+        fprintf(stderr, "PATH variable not found or empty\n");
         return (NULL);
     }
-    
+
+    printf("Using PATH: %s\n", path);
+
     path_copy = strdup(path);
     if (path_copy == NULL)
     {
@@ -63,5 +66,6 @@ char *command_path(char *cmd)
     }
     
     free(path_copy);
+    fprintf(stderr, "Command '%s' not found in PATH\n", cmd);
     return (NULL);
 }
