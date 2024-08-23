@@ -1,11 +1,5 @@
 #include "main.h"
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 
 /**
  * command_read - Reads and processes a command from stdin
@@ -54,10 +48,8 @@ int execute(char *cmd_arr[])
     if (exe_path == NULL)
     {
         fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
-        return (127);
+        return (1);
     }
-
-    printf("Executing command at path: %s\n", exe_path);
 
     pid = fork();
     if (pid < 0)
@@ -76,8 +68,8 @@ int execute(char *cmd_arr[])
 
         free(exe_path);
 
-        if (WIFEXITED(status))
-            return WEXITSTATUS(status);
+        if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+            return (0);
         else
             return (1);
     }
@@ -95,13 +87,15 @@ int execute(char *cmd_arr[])
     return (0);
 }
 
+/**
+ * main - Entry point of the shell program
+ * Return: 0 on success, 1 on failure
+ */
 int main(void)
 {
     char *line = NULL;
     size_t buf_size = 0;
     ssize_t characters = 0;
-    int last_status = 0;
-    int command_status;
 
     while (1)
     {
@@ -124,14 +118,10 @@ int main(void)
         if (*line == '\0')
             continue;
 
-        command_status = command_read(line);
-
-        if (command_status == 2)
+        if (command_read(line) == 2)
             break;
-
-        last_status = command_status;
     }
 
     free(line);
-    return (last_status);
+    return (0);
 }
