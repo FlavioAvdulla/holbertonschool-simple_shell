@@ -27,7 +27,7 @@ int command_read(char *s)
     cmd_array[i] = NULL;
 
     if (cmd_array[0] == NULL)
-        return (0); // Empty command
+        return (0);
 
     return (execute(cmd_array));
 }
