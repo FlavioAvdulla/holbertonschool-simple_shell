@@ -1,7 +1,7 @@
 #include "main.h"
 
 /**
- * execute_command - Executes a command
+ * execute - Executes a command
  * @cmd_arr: Array of command and arguments
  * Return: 0 on success, -1 on failure
  */
@@ -20,7 +20,7 @@ int execute(char *cmd_arr[])
     path = command_path(cmd_arr[0]);
     if (path == NULL)
     {
-        fprintf(stderr, "Error: Command not found\n");
+        fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
         return (-1);
     }
 
@@ -123,10 +123,8 @@ int main(void)
         if (strcmp(buff, "exit\n") == 0)
             break;
 
-        if (buff[chars_read - 1] == '\n')
-            buff[chars_read - 1] = '\0';
-
         trim_whitespace(buff);
+
         command_tok(buff);
 
         if (istty != 1)
