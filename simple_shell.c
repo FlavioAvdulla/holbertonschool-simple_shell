@@ -1,132 +1,137 @@
 #include "main.h"
 
 /**
- * command_read - Reads and processes a command from stdin
- * @s: The command to read
- * Return: 0 on success, 1 on failure, 2 to exit
- */
-int command_read(char *s)
-{
-    int i;
-    char *token = NULL;
-    char *cmd_array[100];
-
-    if (strcmp(s, "exit") == 0)
-        return (2);
-    if (strcmp(s, "env") == 0)
-        return (_printenv());
-
-    token = strtok(s, " ");
-    i = 0;
-    while (token != NULL && i < 100)
-    {
-        cmd_array[i] = token;
-        token = strtok(NULL, " ");
-        i++;
-    }
-    cmd_array[i] = NULL;
-
-    if (cmd_array[0] == NULL)
-        return (0);
-
-    return (execute(cmd_array));
-}
-
-#include "main.h"
-
-/**
- * execute - Executes a command with arguments
- * @cmd_arr: Array of command arguments
+ * execute_command - Executes a command
+ * @cmd_arr: Array of command and arguments
  * Return: 0 on success, -1 on failure
  */
 int execute(char *cmd_arr[])
 {
     pid_t pid;
     int status;
-    char *exe_path;
+    char *path;
 
     if (cmd_arr == NULL || cmd_arr[0] == NULL)
-        return (-1);
-
-    exe_path = command_path(cmd_arr[0]);
-    if (exe_path == NULL)
     {
-        fprintf(stderr, "Error: Command not found: %s\n", cmd_arr[0]);
+        fprintf(stderr, "Error: Command not provided\n");
+        return (-1);
+    }
+
+    path = command_path(cmd_arr[0]);
+    if (path == NULL)
+    {
+        fprintf(stderr, "Error: Command not found\n");
         return (-1);
     }
 
     pid = fork();
     if (pid == -1)
     {
-        perror("Error forking process");
-        free(exe_path);
+        perror("fork");
+        free(path);
         return (-1);
     }
     else if (pid == 0)
     {
-        if (execvp(exe_path, cmd_arr) == -1)
+        if (execve(path, cmd_arr, environ) == -1)
         {
-            perror("Error executing command");
-            free(exe_path);
+            perror("execve");
+            free(path);
             exit(EXIT_FAILURE);
         }
     }
     else
     {
-        if (waitpid(pid, &status, 0) == -1)
+        waitpid(pid, &status, 0);
+        free(path);
+        if (WIFEXITED(status))
         {
-            perror("Error waiting for child process");
-            free(exe_path);
+            return (WEXITSTATUS(status));
+        }
+        else if (WIFSIGNALED(status))
+        {
+            fprintf(stderr, "Child process terminated by signal %d\n", WTERMSIG(status));
             return (-1);
         }
-
-        if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+        else
         {
-            fprintf(stderr, "Command exited with status %d\n", WEXITSTATUS(status));
-            free(exe_path);
             return (-1);
         }
     }
-
-    free(exe_path);
     return (0);
 }
 
 /**
- * main - Entry point of the shell program
- * Return: 0 on success, 1 on failure
+ * command_tok - Tokenizes the command input
+ * @input: The input string to tokenize
+ */
+void command_tok(char *input)
+{
+    char *token;
+    char *cmd_arr[1024];
+    int i = 0;
+
+    token = strtok(input, " \t\n");
+    while (token != NULL)
+    {
+        cmd_arr[i++] = token;
+        token = strtok(NULL, " \t\n");
+    }
+    cmd_arr[i] = NULL;
+
+    if (execute(cmd_arr) == -1)
+    {
+        fprintf(stderr, "Execution failed\n");
+    }
+}
+
+/**
+ * main - Entry point of the program
+ * Return: 0 on normal exit, EXIT_FAILURE on error
  */
 int main(void)
 {
-    char *line = NULL;
-    size_t buf_size = 0;
-    ssize_t characters = 0;
+    int chars_read, istty;
+    char *buff = NULL;
+    size_t size = 0;
 
     while (1)
     {
-        if (isatty(STDIN_FILENO))
-            write(1, "$ ", 2);
+        istty = isatty(STDIN_FILENO);
+        if (istty == 1)
+            printf("$ ");
 
-        characters = getline(&line, &buf_size, stdin);
-        if (characters == -1)
+        chars_read = getline(&buff, &size, stdin);
+
+        if (chars_read == -1)
         {
-            if (isatty(STDIN_FILENO))
-                write(1, "\n", 1);
-            break;
+            perror("Error reading input");
+            if (buff)
+                free(buff);
+            exit(EXIT_FAILURE);
         }
 
-        if (line[characters - 1] == '\n')
-            line[characters - 1] = '\0';
+        if (strcmp(buff, "env\n") == 0)
+        {
+            _printenv();
+            continue;
+        }
 
-        trim_whitespace(line);
-
-        if (*line == '\0')
+        if (strcmp(buff, "\n") == 0)
             continue;
 
-        if (command_read(line) == 2)
+        if (strcmp(buff, "exit\n") == 0)
+            break;
+
+        if (buff[chars_read - 1] == '\n')
+            buff[chars_read - 1] = '\0';
+
+        trim_whitespace(buff);
+        command_tok(buff);
+
+        if (istty != 1)
             break;
     }
-
-    free(line);
+    free(buff);
     return (0);
 }

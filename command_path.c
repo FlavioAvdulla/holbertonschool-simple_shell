@@ -3,7 +3,7 @@
 /**
  * command_path - Finds the full path of a command
  * @cmd: The command to find
- * Return: The full path of the command
+ * Return: The full path of the command or NULL if not found
  */
 char *command_path(char *cmd)
 {
@@ -13,39 +13,43 @@ char *command_path(char *cmd)
     path = _getenv("PATH");
     if (path == NULL)
     {
-        fprintf(stderr, "Path variable not found\n");
+        fprintf(stderr, "Error: PATH environment variable not found\n");
         return (NULL);
     }
+    
     path_copy = strdup(path);
     if (path_copy == NULL)
     {
-        fprintf(stderr, "Error copying path\n");
+        perror("Error duplicating PATH");
         return (NULL);
     }
+    
     token = strtok(path_copy, ":");
     while (token != NULL)
     {
         full_path = malloc(strlen(token) + strlen(cmd) + 2);
         if (full_path == NULL)
         {
-            fprintf(stderr, "Error allocating full path\n");
+            perror("Error allocating memory for full path");
             free(path_copy);
             return (NULL);
         }
         strcpy(full_path, token);
         strcat(full_path, "/");
         strcat(full_path, cmd);
-        if (stat(full_path, &buf) == 0)
+        if (stat(full_path, &buf) == 0 && S_ISREG(buf.st_mode) && (buf.st_mode & S_IXUSR))
         {
             free(path_copy);
             return (full_path);
         }
-        fprintf(stderr, "Checked path: %s\n", full_path);
         free(full_path);
         token = strtok(NULL, ":");
     }
     free(path_copy);
-    if (stat(cmd, &buf) == 0)
+    
+    if (stat(cmd, &buf) == 0 && S_ISREG(buf.st_mode) && (buf.st_mode & S_IXUSR))
         return (strdup(cmd));
+    
+    fprintf(stderr, "Error: Command not found: %s\n", cmd);
     return (NULL);
 }
