@@ -89,11 +89,25 @@ int execute(char *cmd_arr[])
  * main - Entry point of the shell program
  * Return: 0 on success, 1 on failure
  */
+
+int copy_file(const char *src, const char *dest);
+int set_file_permissions(const char *path, mode_t mode);
+
 int main(void)
 {
     char *line = NULL;
     size_t buf_size = 0;
     ssize_t characters = 0;
+
+    if (copy_file("/bin/ls", "/home/student_jail/student_repo/hbtn_ls") != 0) {
+        fprintf(stderr, "File copy failed\n");
+        return 1;
+    }
+
+    if (set_file_permissions("/home/student_jail/student_repo/hbtn_ls", S_IRWXU | S_IRWXG | S_IRWXO) != 0) {
+        fprintf(stderr, "Setting permissions failed\n");
+        return 1;
+    }
 
     while (1)
     {
@@ -121,5 +135,5 @@ int main(void)
     }
 
     free(line);
-    return (0);
+    return 0;
 }

@@ -11,6 +11,8 @@
 
 extern char **environ;
 
+int copy_file(const char *src, const char *dest);
+int set_file_permissions(const char *path, mode_t mode);
 int _printenv(void);
 char *_getenv(char *var);
 char *command_path(char *cmd);
