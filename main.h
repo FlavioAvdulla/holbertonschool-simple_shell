@@ -2,8 +2,8 @@
 #define MAIN_H
 
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -13,14 +13,10 @@ extern char **environ;
 
 int _printenv(void);
 char *_getenv(char *var);
-
 char *command_path(char *cmd);
-
-void trim_space(char *s);
-
-int command_tok(char *line);
+int command_read(char *s);
+char *find_command_path(const char *cmd);
 int execute(char *cmd_arr[]);
-
-void free_args(char *s[]);
+void trim_whitespace(char *str);
 
 #endif

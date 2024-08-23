@@ -2,33 +2,49 @@
 
 /**
  * command_path - Finds the full path of a command
- * @cmd: the command to find
- *
- * Return: full path of the command, or NULL if not found
+ * @cmd: The command to find
+ * Return: The full path of the command
  */
 char *command_path(char *cmd)
 {
-    char *path_env, *path, *full_path;
-    struct stat st;
+    char *path, *path_copy, *full_path, *token;
+    struct stat buf;
 
-    path_env = getenv("PATH");
-    if (path_env == NULL)
-        return (NULL);
-
-    path = strtok(path_env, ":");
-    while (path != NULL)
+    path = _getenv("PATH");
+    if (path == NULL)
     {
-        full_path = malloc(strlen(path) + strlen(cmd) + 2);
-        if (full_path == NULL)
-            return (NULL);
-
-        sprintf(full_path, "%s/%s", path, cmd);
-        if (stat(full_path, &st) == 0 && S_ISREG(st.st_mode) && (st.st_mode & S_IXUSR))
-            return (full_path);
-
-        free(full_path);
-        path = strtok(NULL, ":");
+        fprintf(stderr, "Path variable not found\n");
+        return (NULL);
     }
-
+    path_copy = strdup(path);
+    if (path_copy == NULL)
+    {
+        fprintf(stderr, "Error copying path\n");
+        return (NULL);
+    }
+    token = strtok(path_copy, ":");
+    while (token != NULL)
+    {
+        full_path = malloc(strlen(token) + strlen(cmd) + 2);
+        if (full_path == NULL)
+        {
+            fprintf(stderr, "Error allocating full path\n");
+            free(path_copy);
+            return (NULL);
+        }
+        strcpy(full_path, token);
+        strcat(full_path, "/");
+        strcat(full_path, cmd);
+        if (stat(full_path, &buf) == 0)
+        {
+            free(path_copy);
+            return (full_path);
+        }
+        free(full_path);
+        token = strtok(NULL, ":");
+    }
+    free(path_copy);
+    if (stat(cmd, &buf) == 0)
+        return (strdup(cmd));
     return (NULL);
 }
