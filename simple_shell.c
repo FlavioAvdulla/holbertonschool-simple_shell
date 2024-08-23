@@ -54,7 +54,7 @@ int execute(char *cmd_arr[])
     if (exe_path == NULL)
     {
         fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
-        return (1);
+        return (127);
     }
 
     pid = fork();
@@ -74,8 +74,8 @@ int execute(char *cmd_arr[])
 
         free(exe_path);
 
-        if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return (0);
+        if (WIFEXITED(status))
+            return WEXITSTATUS(status);
         else
             return (1);
     }
@@ -93,10 +93,6 @@ int execute(char *cmd_arr[])
     return (0);
 }
 
-/**
- * main - Entry point of the shell program
- * Return: 0 on success, 1 on failure
- */
 int main(void)
 {
     char *line = NULL;
@@ -135,5 +131,5 @@ int main(void)
     }
 
     free(line);
-    return last_status;
+    return (last_status);
 }
