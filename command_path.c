@@ -1,55 +1,69 @@
 #include "main.h"
 
 /**
- * command_path - Finds the full path of a command
- * @cmd: The command to find
- * Return: The full path of the command
+ * _printenv - Prints the environment
+ * Return: 0 on success, -1 on failure
  */
-char *command_path(char *cmd)
+int _printenv(void)
 {
-    char *path, *path_copy, *full_path, *token;
-    struct stat buf;
+    int i = 0;
+    char *str = environ[0];
 
-    if (cmd[0] == '.' || cmd[0] == '/')
+    while (str != NULL)
     {
-        if (stat(cmd, &buf) == 0)
-            return (strdup(cmd));
-        return (NULL);
+        printf("%s\n", str);
+        i++;
+        str = environ[i];
     }
+    return (0);
+}
 
-    path = _getenv("PATH");
-    if (path == NULL)
+/**
+ * _getenv - Gets the value of an environment variable
+ * @var: The environment variable to get
+ * Return: The value of the environment variable
+ */
+char *_getenv(char *var)
+{
+    int i, len_var;
+
+    len_var = strlen(var);
+    for (i = 0; environ[i] != NULL; i++)
     {
-        fprintf(stderr, "Path variable not found\n");
-        return (NULL);
+        if (strncmp(environ[i], var, len_var) == 0)
+            return (&environ[i][len_var]);
     }
-    path_copy = strdup(path);
-    if (path_copy == NULL)
-    {
-        fprintf(stderr, "Error copying path\n");
-        return (NULL);
-    }
-    token = strtok(path_copy, ":");
-    while (token != NULL)
-    {
-        full_path = malloc(strlen(token) + strlen(cmd) + 2);
-        if (full_path == NULL)
-        {
-            fprintf(stderr, "Error allocating full path\n");
-            free(path_copy);
-            return (NULL);
-        }
-        strcpy(full_path, token);
-        strcat(full_path, "/");
-        strcat(full_path, cmd);
-        if (stat(full_path, &buf) == 0)
-        {
-            free(path_copy);
-            return (full_path);
-        }
-        free(full_path);
-        token = strtok(NULL, ":");
-    }
-    free(path_copy);
     return (NULL);
+}
+
+/**
+ * trim_whitespace - Trims leading and trailing whitespace from a string
+ * @str: The string to trim
+ */
+void trim_whitespace(char *str)
+{
+    int i, j;
+    int len = strlen(str);
+
+    i = 0;
+    while (str[i] == ' ' || str[i] == '\t')
+        i++;
+    if (i > 0)
+    {
+        j = 0;
+        while (str[i] != '\0')
+        {
+            str[j] = str[i];
+            i++;
+            j++;
+        }
+        str[j] = '\0';
+    }
+    len = strlen(str);
+    i = len - 1;
+    while (i >= 0 && (str[i] == ' ' || str[i] == '\t'))
+    {
+        str[i] = '\0';
+        i--;
+    }
 }
