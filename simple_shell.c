@@ -1,5 +1,11 @@
 #include "main.h"
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 /**
  * command_read - Reads and processes a command from stdin
@@ -96,6 +102,8 @@ int main(void)
     char *line = NULL;
     size_t buf_size = 0;
     ssize_t characters = 0;
+    int last_status = 0;
+    int command_status;
 
     while (1)
     {
@@ -118,10 +126,14 @@ int main(void)
         if (*line == '\0')
             continue;
 
-        if (command_read(line) == 2)
+        command_status = command_read(line);
+
+        if (command_status == 2)
             break;
+
+        last_status = command_status;
     }
 
     free(line);
-    return (0);
+    return last_status;
 }
