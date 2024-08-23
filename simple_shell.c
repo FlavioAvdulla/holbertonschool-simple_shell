@@ -64,7 +64,6 @@ int execute(char *cmd_arr[])
     }
     else if (pid == 0)
     {
-        /* Child process */
         if (execvp(exe_path, cmd_arr) == -1)
         {
             perror("Error executing command");
@@ -74,7 +73,6 @@ int execute(char *cmd_arr[])
     }
     else
     {
-        /* Parent process */
         if (waitpid(pid, &status, 0) == -1)
         {
             perror("Error waiting for child process");
