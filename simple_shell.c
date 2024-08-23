@@ -1,135 +1,125 @@
 #include "main.h"
 
 /**
+ * command_read - Reads and processes a command from stdin
+ * @s: The command to read
+ * Return: 0 on success, 1 on failure, 2 to exit
+ */
+int command_read(char *s)
+{
+    int i;
+    char *token = NULL;
+    char *cmd_array[100];
+
+    if (strcmp(s, "exit") == 0)
+        return (2);
+    if (strcmp(s, "env") == 0)
+        return (_printenv());
+
+    token = strtok(s, " ");
+    i = 0;
+    while (token != NULL && i < 100)
+    {
+        cmd_array[i] = token;
+        token = strtok(NULL, " ");
+        i++;
+    }
+    cmd_array[i] = NULL;
+
+    if (cmd_array[0] == NULL)
+        return (0);
+
+    return (execute(cmd_array));
+}
+
+/**
  * execute - Executes a command
- * @cmd_arr: Array of command and arguments
- * Return: 0 on success, -1 on failure
+ * @cmd_arr: The command to execute
+ * Return: 0 on success, 1 on failure
  */
 int execute(char *cmd_arr[])
 {
     pid_t pid;
+    char *exe_path;
     int status;
-    char *path;
 
-    if (cmd_arr == NULL || cmd_arr[0] == NULL)
-    {
-        fprintf(stderr, "Error: Command not provided\n");
-        return (-1);
-    }
-
-    path = command_path(cmd_arr[0]);
-    if (path == NULL)
+    exe_path = command_path(cmd_arr[0]);
+    if (exe_path == NULL)
     {
         fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
-        return (-1);
+        return (1);
     }
 
     pid = fork();
-    if (pid == -1)
+    if (pid < 0)
     {
-        perror("fork");
-        free(path);
-        return (-1);
+        perror("Error at creating a child process");
+        free(exe_path);
+        return (1);
     }
-    else if (pid == 0)
+    if (pid > 0)
     {
-        if (execve(path, cmd_arr, environ) == -1)
+        do
         {
-            perror("execve");
-            free(path);
-            exit(EXIT_FAILURE);
+            waitpid(pid, &status, WUNTRACED);
         }
+        while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+        free(exe_path);
+
+        if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+            return (0);
+        else
+            return (1);
     }
     else
     {
-        waitpid(pid, &status, 0);
-        free(path);
-        if (WIFEXITED(status))
+        if (execvp(exe_path, cmd_arr) == -1)
         {
-            return (WEXITSTATUS(status));
-        }
-        else if (WIFSIGNALED(status))
-        {
-            fprintf(stderr, "Child process terminated by signal %d\n", WTERMSIG(status));
-            return (-1);
-        }
-        else
-        {
-            return (-1);
+            fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
+            free(exe_path);
+            exit(127);
         }
     }
+    free(exe_path);
     return (0);
 }
 
 /**
- * command_tok - Tokenizes the command input
- * @input: The input string to tokenize
- */
-void command_tok(char *input)
-{
-    char *token;
-    char *cmd_arr[1024];
-    int i = 0;
-
-    token = strtok(input, " \t\n");
-    while (token != NULL)
-    {
-        cmd_arr[i++] = token;
-        token = strtok(NULL, " \t\n");
-    }
-    cmd_arr[i] = NULL;
-
-    if (execute(cmd_arr) == -1)
-    {
-        fprintf(stderr, "Execution failed\n");
-    }
-}
-
-/**
- * main - Entry point of the program
- * Return: 0 on normal exit, EXIT_FAILURE on error
+ * main - Entry point of the shell program
+ * Return: 0 on success, 1 on failure
  */
 int main(void)
 {
-    int chars_read, istty;
-    char *buff = NULL;
-    size_t size = 0;
+    char *line = NULL;
+    size_t buf_size = 0;
+    ssize_t characters = 0;
 
     while (1)
     {
-        istty = isatty(STDIN_FILENO);
-        if (istty == 1)
-            printf("$ ");
+        if (isatty(STDIN_FILENO))
+            write(1, "$ ", 2);
 
-        chars_read = getline(&buff, &size, stdin);
-
-        if (chars_read == -1)
+        characters = getline(&line, &buf_size, stdin);
+        if (characters == -1)
         {
-            perror("Error reading input");
-            if (buff)
-                free(buff);
-            exit(EXIT_FAILURE);
-        }
-
-        if (strcmp(buff, "env\n") == 0)
-        {
-            _printenv();
-            continue;
-        }
-
-        if (strcmp(buff, "\n") == 0)
-            continue;
-
-        if (strcmp(buff, "exit\n") == 0)
+            if (isatty(STDIN_FILENO))
+                write(1, "\n", 1);
             break;
+        }
 
-        trim_whitespace(buff);
+        if (line[characters - 1] == '\n')
+            line[characters - 1] = '\0';
 
-        command_tok(buff);
+        trim_whitespace(line);
 
-        if (istty != 1)
+        if (*line == '\0')
+            continue;
+
+        if (command_read(line) == 2)
             break;
     }
-    free(buff);
+
+    free(line);
     return (0);
 }
