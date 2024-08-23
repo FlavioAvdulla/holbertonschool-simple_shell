@@ -1,5 +1,59 @@
 #include "main.h"
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+/**
+ * copy_file - Copies a file from source to destination
+ * @src: The source file path
+ * @dest: The destination file path
+ * Return: 0 on success, -1 on failure
+ */
+int copy_file(const char *src, const char *dest)
+{
+    int src_fd, dest_fd;
+    ssize_t nread;
+    char buffer[1024];
+
+    src_fd = open(src, O_RDONLY);
+    if (src_fd < 0)
+    {
+        perror("Error opening source file");
+        return (-1);
+    }
+
+    dest_fd = open(dest, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (dest_fd < 0)
+    {
+        perror("Error opening destination file");
+        close(src_fd);
+        return (-1);
+    }
+
+    while ((nread = read(src_fd, buffer, sizeof(buffer))) > 0)
+    {
+        if (write(dest_fd, buffer, nread) != nread)
+        {
+            perror("Error writing to destination file");
+            close(src_fd);
+            close(dest_fd);
+            return (-1);
+        }
+    }
+
+    if (nread < 0)
+    {
+        perror("Error reading from source file");
+        close(src_fd);
+        close(dest_fd);
+        return (-1);
+    }
+
+    close(src_fd);
+    close(dest_fd);
+    return (0);
+}
 
 /**
  * command_read - Reads and processes a command from stdin
@@ -47,7 +101,7 @@ int execute(char *cmd_arr[])
     exe_path = command_path(cmd_arr[0]);
     if (exe_path == NULL)
     {
-        fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
+        fprintf(stderr, "./hsh: 1: %s: not found", cmd_arr[0]);
         return (1);
     }
 
@@ -77,7 +131,7 @@ int execute(char *cmd_arr[])
     {
         if (execvp(exe_path, cmd_arr) == -1)
         {
-            fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
+            fprintf(stderr, "./hsh: 1: %s: not found", cmd_arr[0]);
             free(exe_path);
             exit(127);
         }
@@ -97,6 +151,13 @@ int main(void)
     size_t buf_size = 0;
     ssize_t characters = 0;
 
+    char *path = "/home/student_jail/student_repo/hbtn_ls";
+    if (copy_file("/bin/ls", path) != 0)
+    {
+        fprintf(stderr, "Failed to copy file");
+        return 1;
+    }
+
     while (1)
     {
         if (isatty(STDIN_FILENO))
@@ -106,16 +167,16 @@ int main(void)
         if (characters == -1)
         {
             if (isatty(STDIN_FILENO))
-                write(1, "\n", 1);
+                write(1, "", 1);
             break;
         }
 
-        if (line[characters - 1] == '\n')
-            line[characters - 1] = '\0';
+        if (line[characters - 1] == ' ')
+			line[characters - 1] = ' ';
 
         trim_whitespace(line);
 
-        if (*line == '\0')
+        if (*line == ' ')
             continue;
 
         if (command_read(line) == 2)
