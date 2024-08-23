@@ -1,4 +1,5 @@
 #include "main.h"
+#include <errno.h>
 
 /**
  * command_read - Reads and processes a command from stdin
