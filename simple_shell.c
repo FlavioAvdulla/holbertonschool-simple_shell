@@ -32,55 +32,64 @@ int command_read(char *s)
     return (execute(cmd_array));
 }
 
+#include "main.h"
+
 /**
- * execute - Executes a command
- * @cmd_arr: The command to execute
- * Return: 0 on success, 1 on failure
+ * execute - Executes a command with arguments
+ * @cmd_arr: Array of command arguments
+ * Return: 0 on success, -1 on failure
  */
 int execute(char *cmd_arr[])
 {
     pid_t pid;
-    char *exe_path;
     int status;
+    char *exe_path;
+
+    if (cmd_arr == NULL || cmd_arr[0] == NULL)
+        return (-1);
 
     exe_path = command_path(cmd_arr[0]);
     if (exe_path == NULL)
     {
-        fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
-        return (1);
+        fprintf(stderr, "Error: Command not found: %s\n", cmd_arr[0]);
+        return (-1);
     }
 
     pid = fork();
-    if (pid < 0)
+    if (pid == -1)
     {
-        perror("Error at creating a child process");
+        perror("Error forking process");
         free(exe_path);
-        return (1);
+        return (-1);
     }
-    if (pid > 0)
+    else if (pid == 0)
     {
-        do
+        /* Child process */
+        if (execvp(exe_path, cmd_arr) == -1)
         {
-            waitpid(pid, &status, WUNTRACED);
+            perror("Error executing command");
+            free(exe_path);
+            exit(EXIT_FAILURE);
         }
-        while (!WIFEXITED(status) && !WIFSIGNALED(status));
-
-        free(exe_path);
-
-        if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-            return (0);
-        else
-            return (1);
     }
     else
     {
-        if (execvp(exe_path, cmd_arr) == -1)
+        /* Parent process */
+        if (waitpid(pid, &status, 0) == -1)
         {
-            fprintf(stderr, "./hsh: 1: %s: not found\n", cmd_arr[0]);
+            perror("Error waiting for child process");
             free(exe_path);
-            exit(127);
+            return (-1);
+        }
+
+        if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+        {
+            fprintf(stderr, "Command exited with status %d\n", WEXITSTATUS(status));
+            free(exe_path);
+            return (-1);
         }
     }
+
     free(exe_path);
     return (0);
 }
