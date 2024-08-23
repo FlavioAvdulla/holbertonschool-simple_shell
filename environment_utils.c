@@ -7,13 +7,17 @@
 int _printenv(void)
 {
     int i = 0;
-    char *str = environ[0];
 
-    while (str != NULL)
+    if (environ == NULL)
     {
-        printf("%s\n", str);
+        fprintf(stderr, "Environment variables not available\n");
+        return (-1);
+    }
+
+    while (environ[i] != NULL)
+    {
+        printf("%s\n", environ[i]);
         i++;
-        str = environ[i];
     }
     return (0);
 }
@@ -21,11 +25,17 @@ int _printenv(void)
 /**
  * _getenv - Gets the value of an environment variable
  * @var: The environment variable to get
- * Return: The value of the environment variable
+ * Return: The value of the environment variable, or NULL if not found
  */
 char *_getenv(char *var)
 {
     int i, len_var;
+
+    if (var == NULL)
+    {
+        fprintf(stderr, "Environment variable name is NULL\n");
+        return (NULL);
+    }
 
     len_var = strlen(var);
     for (i = 0; environ[i] != NULL; i++)
@@ -45,9 +55,16 @@ void trim_whitespace(char *str)
     int i, j;
     int len = strlen(str);
 
+    if (str == NULL)
+    {
+        fprintf(stderr, "String to trim is NULL\n");
+        return;
+    }
+
     i = 0;
     while (str[i] == ' ' || str[i] == '\t')
         i++;
+    
     if (i > 0)
     {
         j = 0;
@@ -59,6 +76,7 @@ void trim_whitespace(char *str)
         }
         str[j] = '\0';
     }
+
     len = strlen(str);
     i = len - 1;
     while (i >= 0 && (str[i] == ' ' || str[i] == '\t'))

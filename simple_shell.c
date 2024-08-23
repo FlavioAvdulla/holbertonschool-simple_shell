@@ -54,7 +54,7 @@ int execute(char *cmd_arr[])
     pid = fork();
     if (pid < 0)
     {
-        perror("Error at creating a child process");
+        perror("Error creating child process");
         free(exe_path);
         return (1);
     }
@@ -82,6 +82,7 @@ int execute(char *cmd_arr[])
             exit(127);
         }
     }
+
     free(exe_path);
     return (0);
 }
